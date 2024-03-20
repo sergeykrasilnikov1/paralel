@@ -29,14 +29,14 @@ double run_parallel(int m, int n,int n_threads) {
     a = (double*)malloc(sizeof(*a) * m * n);
     b = (double*)malloc(sizeof(*b) * n);
     c = (double*)malloc(sizeof(*c) * m);
-
+    #pragma omp parallel for num_threads(40)
     for (int i = 0; i < m; i++) {
+        b[j] = j;
         for (int j = 0; j < n; j++)
             a[i * n + j] = i + j;
     }
 
-    for (int j = 0; j < n; j++)
-        b[j] = j;
+        
 
     double t = wtime();
     matrix_vector_product_omp(a, b, c, m, n, n_threads);
@@ -65,14 +65,13 @@ double run_serial(int m, int n) {
     a = (double*)malloc(sizeof(*a) * m * n);
     b = (double*)malloc(sizeof(*b) * n);
     c = (double*)malloc(sizeof(*c) * m);
-#pragma omp parallel for num_threads(40)
     for (int i = 0; i < m; i++) {
+        b[j] = j;
         for (int j = 0; j < n; j++)
             a[i * n + j] = i + j;
 
     }
-    for (int j = 0; j < n; j++)
-        b[j] = j;
+        
     double t = wtime();
     matrix_vector_product(a, b, c, m, n);
     t = wtime() - t;
