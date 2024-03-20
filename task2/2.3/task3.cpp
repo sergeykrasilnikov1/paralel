@@ -85,7 +85,7 @@ void parallel_method2(double* A, double* x, double* b, int n, int n_threads) {
 
 
         while (end_coef > epsilon) {
-
+        different_length = 0;
 
     #pragma omp for schedule(guided, 20) reduction(+:different_length)
             for (int i = 0; i < n; i++) {
