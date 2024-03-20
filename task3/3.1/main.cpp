@@ -4,7 +4,6 @@
 #include <mutex>
 #include <chrono>
 
-std::mutex mtx;
 
 
 
@@ -23,9 +22,7 @@ void matrixVectorMultiply(const std::vector<double>& matrix, const std::vector<d
         for (int j = 0; j < n; ++j) {
             sum += matrix[i * n + j] * vector[j];
         }
-        mtx.lock();
         result[i] = sum;
-        mtx.unlock();
     }
 }
 
