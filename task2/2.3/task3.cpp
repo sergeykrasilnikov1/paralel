@@ -79,17 +79,12 @@ void parallel_method2(double* A, double* x, double* b, int n, int n_threads) {
     double t = cpuSecond();
     double* x_new = (double*)malloc(sizeof(double) * n);
     double end_coef=1;
-    double different_length;
+    double different_length=0;
     #pragma omp parallel num_threads(n_threads)
     {
 
 
         while (end_coef > epsilon) {
-#pragma omp single
-            {
-                different_length = 0;
-
-            }
 
 
     #pragma omp for schedule(guided, 20) reduction(+:different_length)
