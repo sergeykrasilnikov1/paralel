@@ -14,8 +14,9 @@ class Sensor:
 
 
 class SensorCam(Sensor):
-    def __init__(self, camera_name, resolution):
+    def __init__(self, camera_name, resolution, delay):
         try:
+            self._delay = delay
             self.camera = cv2.VideoCapture(camera_name)
             self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
             self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
@@ -26,6 +27,7 @@ class SensorCam(Sensor):
             raise
 
     def get(self):
+        time.sleep(self._delay)
         ret, frame = self.camera.read()
         if not ret:
             logging.error("Error reading frame from camera")
@@ -83,7 +85,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('camera_name', type=int, help='Name of the camera device')
     parser.add_argument('resolution', type=str, help='Resolution of the camera (e.g., 1280x720)')
-    parser.add_argument('display_frequency', type=int, help='Frequency of displaying images')
+    parser.add_argument('display_frequency', type=float, help='Frequency of displaying images')
     return parser.parse_args()
 
 
@@ -96,17 +98,17 @@ def main():
     sensor_x1 = SensorThread(SensorX(0.01))
     sensor_x2 = SensorThread(SensorX(0.1))
     sensor_x3 = SensorThread(SensorX(1))
-    sensor_cam = SensorThread(SensorCam(camera_name, resolution))
+    sensor_cam = SensorThread(SensorCam(camera_name, resolution, display_frequency))
     window_image = WindowImage()
     cam_frame = None
     sensor_x1_data = 0
     sensor_x2_data = 0
     sensor_x3_data = 0
-    frame_count = 0
+    # frame_count = 0
 
     try:
         while True:
-            frame_count += 1
+            # frame_count += 1
             if not sensor_cam.queue.empty():
                 cam_frame = sensor_cam.queue.get()
             if not sensor_x1.queue.empty():
@@ -115,15 +117,15 @@ def main():
                 sensor_x2_data = sensor_x2.queue.get()
             if not sensor_x3.queue.empty():
                 sensor_x3_data = sensor_x3.queue.get()
-
+            cv2.putText(cam_frame,
+                        f'Sensor1 data: {sensor_x1_data} Sensor2 data: {sensor_x2_data} Sensor3 data: {sensor_x3_data}',
+                        (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                        (255, 255, 255), 2,
+                        cv2.LINE_AA)
             if cam_frame is not None:
-                cv2.putText(cam_frame, f'Sensor1 data: {sensor_x1_data} Sensor2 data: {sensor_x2_data} Sensor3 data: {sensor_x3_data}',
-                            (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                            (255, 255, 255), 2,
-                            cv2.LINE_AA)
-                if frame_count % display_frequency == 0:
-                    if window_image.show(cam_frame):
-                        break
+                # if frame_count % display_frequency == 0:
+                if window_image.show(cam_frame):
+                    break
     finally:
         del sensor_cam
         del sensor_x1
