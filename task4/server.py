@@ -104,9 +104,11 @@ def main():
     sensor_x1_data = 0
     sensor_x2_data = 0
     sensor_x3_data = 0
+    frame_count = 0
 
     try:
         while True:
+            frame_count += 1
             if not sensor_cam.queue.empty():
                 cam_frame = sensor_cam.queue.get()
             if not sensor_x1.queue.empty():
@@ -121,8 +123,9 @@ def main():
                             (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                             (255, 255, 255), 2,
                             cv2.LINE_AA)
-                if window_image.show(cam_frame):
-                    break
+                if frame_count % display_frequency == 0:
+                    if window_image.show(cam_frame):
+                        break
     finally:
         del sensor_cam
         del sensor_x1
