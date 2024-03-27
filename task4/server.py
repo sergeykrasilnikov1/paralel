@@ -68,12 +68,10 @@ class SensorX(Sensor):
 
 
 class WindowImage:
-    def __init__(self, display_frequency):
-        self.display_frequency = display_frequency
 
     def show(self, img):
         cv2.imshow('cam', img)
-        if cv2.waitKey(self.display_frequency) == ord('q'):
+        if cv2.waitKey(1) == ord('q'):
             return True
         return False
 
@@ -99,7 +97,7 @@ def main():
     sensor_x2 = SensorThread(SensorX(0.1))
     sensor_x3 = SensorThread(SensorX(1))
     sensor_cam = SensorThread(SensorCam(camera_name, resolution))
-    window_image = WindowImage(display_frequency)
+    window_image = WindowImage()
     cam_frame = None
     sensor_x1_data = 0
     sensor_x2_data = 0
