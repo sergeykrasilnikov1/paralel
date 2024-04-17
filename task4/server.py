@@ -27,7 +27,6 @@ class SensorCam(Sensor):
             raise
 
     def get(self):
-        time.sleep(self._delay)
         ret, frame = self.camera.read()
         if not ret:
             logging.error("Error reading frame from camera")
@@ -71,9 +70,11 @@ class SensorX(Sensor):
 
 class WindowImage:
 
+    def __init__(self, freq):
+        self.freq = freq
     def show(self, img):
         cv2.imshow('cam', img)
-        if cv2.waitKey(1) == ord('q'):
+        if cv2.waitKey(int(1/self.freq)) == ord('q'):
             return True
         return False
 
@@ -99,16 +100,14 @@ def main():
     sensor_x2 = SensorThread(SensorX(0.1))
     sensor_x3 = SensorThread(SensorX(1))
     sensor_cam = SensorThread(SensorCam(camera_name, resolution, display_frequency))
-    window_image = WindowImage()
+    window_image = WindowImage(display_frequency)
     cam_frame = None
     sensor_x1_data = 0
     sensor_x2_data = 0
     sensor_x3_data = 0
-    # frame_count = 0
 
     try:
         while True:
-            # frame_count += 1
             if not sensor_cam.queue.empty():
                 cam_frame = sensor_cam.queue.get()
             if not sensor_x1.queue.empty():
@@ -123,7 +122,6 @@ def main():
                         (255, 255, 255), 2,
                         cv2.LINE_AA)
             if cam_frame is not None:
-                # if frame_count % display_frequency == 0:
                 if window_image.show(cam_frame):
                     break
     finally:
