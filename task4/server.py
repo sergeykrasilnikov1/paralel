@@ -48,13 +48,13 @@ class SensorThread:
 
     def __del__(self):
         self._run = False
+        self._thread.join()
 
     def run(self):
         self._run = True
         while self._run:
             data = self._sensor.get()
-            if self.queue.empty():
-                self.queue.put(data)
+            self.queue.put(data)
 
 
 class SensorX(Sensor):
@@ -101,15 +101,12 @@ def main():
     sensor_x3 = SensorThread(SensorX(1))
     sensor_cam = SensorThread(SensorCam(camera_name, resolution, display_frequency))
     window_image = WindowImage(display_frequency)
-    cam_frame = None
     sensor_x1_data = 0
     sensor_x2_data = 0
     sensor_x3_data = 0
-
     try:
         while True:
-            if not sensor_cam.queue.empty():
-                cam_frame = sensor_cam.queue.get()
+            cam_frame = sensor_cam.queue.get()
             if not sensor_x1.queue.empty():
                 sensor_x1_data = sensor_x1.queue.get()
             if not sensor_x2.queue.empty():
@@ -121,9 +118,8 @@ def main():
                         (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                         (255, 255, 255), 2,
                         cv2.LINE_AA)
-            if cam_frame is not None:
-                if window_image.show(cam_frame):
-                    break
+            if window_image.show(cam_frame):
+                break
     finally:
         del sensor_cam
         del sensor_x1
