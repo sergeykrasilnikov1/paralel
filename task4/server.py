@@ -44,7 +44,7 @@ class SensorThread:
         self.queue = queue.Queue()
         self._sensor = sensor
         self._run = False
-        self._thread = threading.Thread(target=self.run, daemon=True).start()
+        self._thread = threading.Thread(target=self.run).start()
 
     def __del__(self):
         self._run = False
