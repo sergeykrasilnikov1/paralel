@@ -104,15 +104,17 @@ def main():
     sensor_x1_data = 0
     sensor_x2_data = 0
     sensor_x3_data = 0
+    cam_frame = sensor_cam.queue.get()
     try:
         while True:
-            cam_frame = sensor_cam.queue.get()
-            if not sensor_x1.queue.empty():
-                sensor_x1_data = sensor_x1.queue.get()
-            if not sensor_x2.queue.empty():
+            while not sensor_cam.queue.empty():
+                cam_frame = sensor_cam.queue.get()
+            while not sensor_x2.queue.empty():
                 sensor_x2_data = sensor_x2.queue.get()
-            if not sensor_x3.queue.empty():
+            while not sensor_x3.queue.empty():
                 sensor_x3_data = sensor_x3.queue.get()
+            while not sensor_x1.queue.empty():
+                sensor_x1_data = sensor_x1.queue.get()
             cv2.putText(cam_frame,
                         f'Sensor1 data: {sensor_x1_data} Sensor2 data: {sensor_x2_data} Sensor3 data: {sensor_x3_data}',
                         (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
