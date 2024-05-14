@@ -85,7 +85,6 @@ void Laplace::swap()
 }
 
 void Laplace::draw_field(int size) {
-    #pragma acc exit data copyout(A[:m*n], Anew[:m*n])
     for (int i = 1; i < size - 1; i++) {
         for (int j = 1; j < size - 1; j++)
             std::cout << A[OFFSET(i, j, size)] << " ";
