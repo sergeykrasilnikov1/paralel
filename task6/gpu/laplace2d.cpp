@@ -51,7 +51,7 @@ void Laplace::initialize(std::vector<std::pair<int, double>> heat_points)
 double Laplace::calcNext()
 {
     double error = 0.0;
-#pragma acc parallel loop reduction(max : error) present(A, Anew)
+#pragma acc parallel loop reduction(max : error) present(A, Anew) async
     for (int j = 1; j < n - 1; j++) {
 #pragma acc loop
         for (int i = 1; i < n - 1; i++) {
@@ -65,6 +65,7 @@ double Laplace::calcNext()
 
         }
     }
+    #pragma acc wait
     return error;
 
 }
