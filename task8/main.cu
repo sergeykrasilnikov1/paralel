@@ -109,7 +109,6 @@ __global__ void calcErrorKernel(const double* __restrict__ A, const double* __re
 
     double localMax = 0.0;
 
-    // Loop over the rows this thread block is responsible for
     for (int j = blockIdx.y + 1; j < n - 1; j += gridDim.y) {
         for (int i = threadIdx.x + 1; i < m - 1; i += blockDim.x) {
             double error = fabs(Anew[OFFSET(j, i, m)] - A[OFFSET(j, i, m)]);
@@ -117,46 +116,45 @@ __global__ void calcErrorKernel(const double* __restrict__ A, const double* __re
         }
     }
 
-    // Store local maximum in shared memory
+
     sharedData[tid] = localMax;
     __syncthreads();
 
-    // Perform block-wide reduction using CUB
-    typedef cub::BlockReduce<double, 1024> BlockReduce; // Assuming block size is 1024
+    typedef cub::BlockReduce<double, 1024> BlockReduce; 
     __shared__ typename BlockReduce::TempStorage temp_storage;
 
     double blockMax = BlockReduce(temp_storage).Reduce(sharedData[tid], cub::Max());
 
-    // The first thread in the block writes the result to global memory
+
     if (tid == 0) {
         blockMaxErrors[blockIdx.x + blockIdx.y * gridDim.x] = blockMax;
     }
 }
 
 double Laplace::calcError() {
-    int numBlocks = (m - 2 + 1023) / 1024; // Assuming block size of 1024
+    int numBlocks = (m - 2 + 1023) / 1024;
     dim3 blocks(numBlocks, (n - 2 + numBlocks - 1) / numBlocks);
     dim3 threads(1024);
 
-    // Allocate memory for block max errors
+
     double* d_blockMaxErrors;
     cudaMalloc(&d_blockMaxErrors, blocks.x * blocks.y * sizeof(double));
 
-    // Launch the kernel
+
     size_t sharedMemSize = 1024 * sizeof(double); // Assuming block size of 1024
     calcErrorKernel<<<blocks, threads, sharedMemSize>>>(A, Anew, n, m, d_blockMaxErrors);
 
-    // Allocate memory for the final max error
+
     double* h_blockMaxErrors = new double[blocks.x * blocks.y];
     cudaMemcpy(h_blockMaxErrors, d_blockMaxErrors, blocks.x * blocks.y * sizeof(double), cudaMemcpyDeviceToHost);
 
-    // Perform the final reduction on the host
+
     double maxError = 0.0;
     for (int i = 0; i < blocks.x * blocks.y; ++i) {
         maxError = fmax(maxError, h_blockMaxErrors[i]);
     }
 
-    // Free memory
+
     delete[] h_blockMaxErrors;
     cudaFree(d_blockMaxErrors);
 
